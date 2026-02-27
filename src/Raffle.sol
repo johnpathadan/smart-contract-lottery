@@ -86,8 +86,7 @@ contract Raffle is VRFConsumerBaseV2Plus {
         * @return ignored
      */
 
-    function checkUpkeep(bytes memory /* checkData */) //calldata change to memory
-    //explanation in the performUpkeep function
+    function checkUpkeep(bytes memory /* checkData */)
     public view returns(bool upkeepNeeded, bytes memory /* performData */)
     {
         bool timeHasPassed = ((block.timestamp - s_lastTimeStamp) >= i_interval); 
@@ -103,9 +102,8 @@ contract Raffle is VRFConsumerBaseV2Plus {
     // 3. be automatically called
      function performUpkeep( bytes calldata /* performData */) external {
        (bool upkeepNeeded,) = checkUpkeep("");
-       if(!upkeepNeeded){
-        // revert(); //user/developer unclear why the revert occur 
-        revert Raffle__UpkeepNotNeeded(address(this).balance, s_players.length, uint256(s_raffleState)); //we can also add parameters
+       if(!upkeepNeeded){ 
+        revert Raffle__UpkeepNotNeeded(address(this).balance, s_players.length, uint256(s_raffleState));
        }
 
         s_raffleState = RaffleState.CALCULATING;
@@ -122,15 +120,13 @@ contract Raffle is VRFConsumerBaseV2Plus {
                 )
             });
 
-        s_vrfCoordinator.requestRandomWords( //variable name removed
+        s_vrfCoordinator.requestRandomWords(
            request
         );
     }
 
-
-    // requestId commented
     function fulfillRandomWords(uint256 /*requestId*/, uint256[] calldata randomWords) internal override {
-        //Effect (Internal Contract State)
+        //Effect
         uint256 indexOfWinner = randomWords[0] % s_players.length;
         address payable recentWinner = s_players[indexOfWinner];
         s_recentWinner = recentWinner;
@@ -149,5 +145,10 @@ contract Raffle is VRFConsumerBaseV2Plus {
     //Getter Functions below
     function getEntranceFee() external view returns (uint256) {
         return i_entranceFee;
+    }
+
+    //a getter function to get the raffle state
+    function getRaffleState() public view returns (RaffleState) {
+        return s_raffleState;
     }
 }
